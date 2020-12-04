@@ -8,3 +8,6 @@ def main():
                         .setCommand('draw label', command.drawItemFuncion, '이미지에 라벨을 그리기. 각 데이터셋 폴더/images_draw-label 안에 저장됨.')
 
     mainMenu()
+
+if __name__ == "__main__":
+    main()

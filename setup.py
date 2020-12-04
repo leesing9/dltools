@@ -8,6 +8,7 @@ install_requires = [
         'numpy<=1.19.3',
         'opencv-python',
         'pillow',
+        'tensorflow',
         "pycocotools @ git+https://github.com/philferriere/cocoapi.git#egg=pycocotools&subdirectory=PythonAPI ;platform_system=='Windows'",
         'datumaro @ git+https://github.com/zmfkzj/datumaro'
     ]

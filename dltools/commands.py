@@ -11,11 +11,13 @@ class Commands:
     def __init__(self) -> None:
         root = Tk()
         self.datasetsPath = Path(filedialog.askdirectory())
+        while bool(str(self.datasetsPath)):
+            self.datasetsPath = Path(filedialog.askdirectory())
         root.destroy()
         self.projectsPath = (self.datasetsPath/'..'/'projects').resolve().absolute()
         self.mergeFolderName = 'merged'
 
-    def checkDefineVariable(self, var):
+    def checkDefineVariable(self, var:str):
         try:
             eval(var)
             return True
@@ -35,7 +37,7 @@ class Commands:
         return self
 
     def mergeDataset(self):
-        if not self.checkDefineVariable():
+        if not self.checkDefineVariable('self.projectsPathListFromDataset'):
             importArgs = ImportArg()
             self.importDataset(importArgs)
         projsPathList = [str(dir) for dir in self.projectsPathListFromDataset]
@@ -58,7 +60,7 @@ class Commands:
             projectsPathList = self.projectsPathListFromDataset
 
         for proj in projectsPathList:
-            exportPath = (Path('exportDataset')/args['format'].lower()/proj.name).absolute()
+            exportPath = (self.projectsPath/'export'/args['format'].lower()/proj.name).absolute()
             exportPath.mkdir(exist_ok=True, parents=True)
             export_args = ['project','export','-f',args['format'].lower(),'-o',str(exportPath),'-p',str(proj)]
             main(export_args)

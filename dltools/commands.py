@@ -2,10 +2,10 @@ from pathlib import Path
 from datumaro.cli.__main__ import main
 from tkinter import Tk, filedialog
 from tqdm import tqdm
-from args import ImportArg, ExportArg, DrawItemArg
+from dltools.args import ImportArg, ExportArg, DrawItemArg
 from datumaro.components.project import Project # project-related things
-from args import Arg
-from dataset import customDataset
+from dltools.args import Arg
+from dltools.dataset import customDataset
 
 class Commands:
     def __init__(self) -> None:
@@ -109,5 +109,3 @@ class Commands:
         for dataset in tqdm(self.datasets):
             dataset.drawAndExport(args['lineStyle'], args['cornerStyle'])
         return self
-
-if __name__ == "__main__":

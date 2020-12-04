@@ -1,5 +1,5 @@
-from menu import Menu
-from commands import Commands
+from dltools.menu import Menu
+from dltools.commands import Commands
 
 def main():
     command = Commands()

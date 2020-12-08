@@ -6,13 +6,15 @@ from dltools.args import ImportArg, ExportArg, DrawItemArg
 from datumaro.components.project import Project # project-related things
 from dltools.args import Arg
 from dltools.dataset import customDataset
+from sys import exit
 
 class Commands:
     def __init__(self) -> None:
         root = Tk()
-        self.datasetsPath = Path(filedialog.askdirectory())
-        while bool(str(self.datasetsPath)):
-            self.datasetsPath = Path(filedialog.askdirectory())
+        selectedDatasetPathStr = filedialog.askdirectory()
+        if not bool(selectedDatasetPathStr):
+            exit()
+        self.datasetsPath = Path(selectedDatasetPathStr).absolute()
         root.destroy()
         self.projectsPath = (self.datasetsPath/'..'/'projects').resolve().absolute()
         self.mergeFolderName = 'merged'

@@ -17,8 +17,8 @@ pip install git+https://github.com/zmfkzj/dltools.git
 1. 원하는 메뉴의 No를 선택 후 `Enter`
 1. 안내에 따라 옵션 입력
 ## 데이터셋 합치기
-새폴더의 부모폴더 안에 merged 폴더가 생성되며 그 안에 결과물이 위치
+새폴더의 부모폴더 안에 export/merged 폴더가 생성되며 그 안에 결과물이 위치
 ## 데이터셋 변환
 새폴더의 부모폴더 안에 export 폴더가 생성되며 그 안에 결과물이 위치
 ## 데이터셋 변환
-새폴더 안의 각 데이터셋 안에 images_draw-object 폴더가 생성되며 그 안에 결과물 위치
+새폴더 안의 각 데이터셋 안에 images_draw-label 폴더가 생성되며 그 안에 결과물 위치

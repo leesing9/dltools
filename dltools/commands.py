@@ -54,7 +54,7 @@ class Commands:
             args['format'] = input('지원하지 않는 format입니다. 다시 입력해주세요.')
 
         if merge:
-            projectsPathList = [self.projectsPath/self.mergeFolderName]
+            projectsPathList = [self.projectsPath/'..'/self.mergeFolderName]
         else:
             if not self.checkDefineVariable('self.projectsPathListFromDataset'):
                 importArgs = ImportArg()
@@ -62,7 +62,7 @@ class Commands:
             projectsPathList = self.projectsPathListFromDataset
 
         for proj in projectsPathList:
-            exportPath = (self.projectsPath/'export'/args['format'].lower()/proj.name).absolute()
+            exportPath = (self.projectsPath/'..'/'export'/args['format'].lower()/proj.name).absolute()
             exportPath.mkdir(exist_ok=True, parents=True)
             export_args = ['project','export','-f',args['format'].lower(),'-o',str(exportPath),'-p',str(proj)]
             main(export_args)

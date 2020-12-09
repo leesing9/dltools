@@ -54,7 +54,7 @@ class Commands:
             args['format'] = input('지원하지 않는 format입니다. 다시 입력해주세요.')
 
         if merge:
-            projectsPathList = [self.projectsPath/'..'/self.mergeFolderName]
+            projectsPathList = [self.projectsPath/self.mergeFolderName]
         else:
             if not self.checkDefineVariable('self.projectsPathListFromDataset'):
                 importArgs = ImportArg()

@@ -1,9 +1,10 @@
 from setuptools import setup, find_packages
-from setuptools.command.install import install
+# from setuptools.command.install import install
 from subprocess import check_call
+import sys
 
 install_requires = [
-        'cython',
+        # 'cython',
         'easydict',
         'tqdm',
         'numpy<=1.19.3',
@@ -14,21 +15,22 @@ install_requires = [
         'datumaro @ git+https://github.com/zmfkzj/datumaro'
     ]
 
-class PreInstallCommand(install):
-    """Pre-installation for installation mode."""
-    def run(self):
-        check_call("pip install -r requirments.txt".split())
-        install.run(self)
+# class PreInstallCommand(install):
+#     """Pre-installation for installation mode."""
+#     def run(self):
+#         check_call([sys.executable, '-m'] + "pip install -r requirements.txt".split())
+#         install.run(self)
 
+check_call([sys.executable, '-m'] + "pip install -r requirements.txt".split())
 setup(
     name='dltools',
     packages=find_packages(),
     python_requires='>=3.7',
     install_requires=install_requires,
     include_package_data = True,
-    cmdclass={
-        'install':PreInstallCommand,
-    },
+    # cmdclass={
+    #     'install':PreInstallCommand,
+    # },
     entry_points={
         'console_scripts': [
             'dltools=dltools.DatasetTools:main'

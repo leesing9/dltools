@@ -46,7 +46,7 @@ class customDataset:
             self.root = Path(item.image.path[:item.image.path.rfind(item.id)]).parent
 
         def saveImg(self):
-            img = deepcopy(self.img)
+            img = self.chgImageOrder(self.img)
             img = Image.fromarray(img.astype(np.uint8))
             savePath:Path = self.root/'images_draw-label'/Path(self.item.image.path).name
             savePath.parent.mkdir(exist_ok=True, parents=True)
@@ -63,20 +63,24 @@ class customDataset:
 
         @staticmethod
         def chgImageOrder(inputImg):
+            '''
+            RGB to BGR or BGR to RGB
+            '''
             img = deepcopy(inputImg)
             if len(img.shape) == 3 and img.shape[2] in {3, 4}:
                 img[:, :, :3] = img[:, :, 2::-1]
+            return img
 
         @staticmethod
-        def getColor(anno:Union[Bbox,Polygon]):
+        def getBGRColor(anno:Union[Bbox,Polygon]):
             color = customDataset.ImageData.colorMap[anno.label]
             while len(customDataset.ImageData.colorMap) != len(set(customDataset.ImageData.colorMap.values())):
                 del customDataset.ImageData.colorMap[anno.label]
                 color = customDataset.ImageData.colorMap[anno.label]
-            return color
+            return color[::-1]
 
         def drawBbox(self, anno:Bbox, lineStyle, cornerStyle):
-            color = self.getColor(anno)
+            color = self.getBGRColor(anno)
             bbox = [int(i) for i in anno.points]
             if cornerStyle=='round':
                 self.roundRectangle(self.img,(bbox[0], bbox[1]), (bbox[2], bbox[3]), color, self.thick, linestyle=lineStyle)
@@ -156,7 +160,7 @@ class customDataset:
         def drawLabel(self, anno:Union[Bbox,Polygon]):
             bbox = list(map(lambda coord: int(np.around(coord)),anno.points))
             label = self.categories[anno.label].name
-            color = self.getColor(anno)
+            color = self.getBGRColor(anno)
             textColor = tuple(np.array([255,255,255]) - np.array(color))
             #draw label
             fontpath = 'NanumGothicBold.ttf'
@@ -167,9 +171,10 @@ class customDataset:
             w, h = draw.textsize(label, font=font)
             img_label = img_label.crop((0,0,w,int(h*1.1)))
             text_y = max(bbox[1] - h,0) #label 위치 조정
-            img = Image.fromarray(self.img.astype(np.uint8))
+            img = self.chgImageOrder(self.img)
+            img = Image.fromarray(img.astype(np.uint8))
             img.paste(img_label,(bbox[0],text_y))
-            self.img = np.array(img)
+            self.img = self.chgImageOrder(np.array(img))
 
             # label_idx_inImg = (bbox[0], text_y, bbox[0]+w, text_y+h)
             # self.img[label_idx_inImg[1]:label_idx_inImg[3], label_idx_inImg[0]:label_idx_inImg[2]] = img_label

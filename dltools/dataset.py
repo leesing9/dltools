@@ -9,6 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from typing import Union
+from copy import deepcopy
 
 
 class customDataset:
@@ -44,15 +45,9 @@ class customDataset:
             self.thick = int(max([*list(self.img.shape[:2]*np.array([2/1080, 2/1620])),2]))
             self.root = Path(item.image.path[:item.image.path.rfind(item.id)]).parent
 
-        # async def readImg(self):
-        #     img = await customDataset.loop.run_in_executor(None, Image.open, self.item.path)
-        #     self.img = np.array(img)
-        #     self.fontscale = max(img.shape[:2]*np.array([10/1080, 10/1620]))
-        #     self.thick = int(max(img.shape[:2]*np.array([1/1080, 1/1620])))
-        #     return self
-
         def saveImg(self):
-            img = Image.fromarray(self.img.astype(np.uint8))
+            img = deepcopy(self.img)
+            img = Image.fromarray(img.astype(np.uint8))
             savePath:Path = self.root/'images_draw-label'/Path(self.item.image.path).name
             savePath.parent.mkdir(exist_ok=True, parents=True)
             img.save(savePath)
@@ -65,6 +60,12 @@ class customDataset:
                 elif isinstance(anno,Polygon):
                     self.drawSeg()
             return self
+
+        @staticmethod
+        def chgImageOrder(inputImg):
+            img = deepcopy(inputImg)
+            if len(img.shape) == 3 and img.shape[2] in {3, 4}:
+                img[:, :, :3] = img[:, :, 2::-1]
 
         @staticmethod
         def getColor(anno:Union[Bbox,Polygon]):

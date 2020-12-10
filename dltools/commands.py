@@ -16,8 +16,8 @@ class Commands:
             exit()
         self.datasetsPath = Path(selectedDatasetPathStr).absolute()
         root.destroy()
-        self.projectsPath = (self.datasetsPath/'..'/'projects').resolve().absolute()
-        self.mergeFolderName = 'merged'
+        self.projectsPath = (self.datasetsPath/'..'/f'projects').resolve().absolute()
+        self.mergeFolderName = f'{self.datasetsPath.name}_merge'
 
     def checkDefineVariable(self, var:str):
         try:
@@ -62,7 +62,7 @@ class Commands:
             projectsPathList = self.projectsPathListFromDataset
 
         for proj in projectsPathList:
-            exportPath = (self.projectsPath/'..'/'export'/args['format'].lower()/proj.name).absolute()
+            exportPath = (self.projectsPath/'..'/'export'/f'{proj.name}_{args["format"].lower()}').absolute()
             exportPath.mkdir(exist_ok=True, parents=True)
             export_args = ['project','export','-f',args['format'].lower(),'-o',str(exportPath),'-p',str(proj)]
             main(export_args)

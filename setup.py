@@ -17,7 +17,7 @@ install_requires = [
 class PreInstallCommand(install):
     """Pre-installation for installation mode."""
     def run(self):
-        check_call("apt-get install -r requirment.txt".split())
+        check_call("pip install -r requirment.txt".split())
         install.run(self)
 
 setup(

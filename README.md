@@ -6,12 +6,10 @@ DeepLabel 지원을 위한 툴
   - [visual studio](https://visualstudio.microsoft.com/ko/downloads/) 최신버전 설치 후 C++ 개발도구 설치
 - 명령 프롬프트에서 다음 커맨드 실행
 ```bash
-pip install cython
 pip install git+https://github.com/zmfkzj/dltools.git
 ```
 # 사용준비
-1. DeepLabel에서 dump 혹은 export로 annotation 다운로드
-  - 모두 같은 형식이어야 함
+1. DeepLabel에서 dump 혹은 export로 annotation 다운로드(모두 같은 형식이어야 함)
 1. 새로운 폴더를 만들어 다운로드 받은 데이터셋 이동
 1. 새폴더 안의 데이터셋을 각 폴더에 압축풀기
 # 사용법

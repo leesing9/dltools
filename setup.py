@@ -1,5 +1,6 @@
-from setuptools import setup, find_packages, dist
-import os
+from setuptools import setup, find_packages
+from setuptools.command.install import install
+from subprocess import check_call
 
 install_requires = [
         'cython',
@@ -13,14 +14,11 @@ install_requires = [
         'datumaro @ git+https://github.com/zmfkzj/datumaro'
     ]
 
-# osName = os.name
-# if osName =='nt':
-#     pycocotoolsUrl = 'pycocotools @ git+https://github.com/philferriere/cocoapi.git#egg=pycocotools&subdirectory=PythonAPI'
-#     install_requires.insert(1,pycocotoolsUrl)
-
-# dist.Distribution().fetch_build_eggs([
-#     'Cython>=0.27.3' # required for pycocotools and others, if need to compile
-# ])
+class PreInstallCommand(install):
+    """Pre-installation for installation mode."""
+    def run(self):
+        check_call("apt-get install -r requirment.txt".split())
+        install.run(self)
 
 setup(
     name='dltools',
@@ -28,6 +26,9 @@ setup(
     python_requires='>=3.7',
     install_requires=install_requires,
     include_package_data = True,
+    cmdclass={
+        'install':PreInstallCommand,
+    },
     entry_points={
         'console_scripts': [
             'dltools=dltools.DatasetTools:main'

@@ -1,12 +1,15 @@
 from pathlib import Path
+from typing import OrderedDict
 from datumaro.cli.__main__ import main
 from tkinter import Tk, filedialog
 from tqdm import tqdm
 from dltools.args import ImportArg, ExportArg, DrawItemArg
-from datumaro.components.project import Project # project-related things
 from dltools.args import Arg
 from dltools.dataset import customDataset
 from sys import exit
+from datumaro.components.project import Project, Environment # project-related things
+from datumaro.components.operations import IntersectMerge
+from datumaro.components.extractor import DatasetItem, Bbox, Polygon, AnnotationType, LabelCategories
 
 class Commands:
     def __init__(self) -> None:
@@ -38,15 +41,35 @@ class Commands:
             main(projImportArgs)
         return self
 
-    def mergeDataset(self):
-        if not self.checkDefineVariable('self.projectsPathListFromDataset'):
-            importArgs = ImportArg()
-            self.importDataset(importArgs)
-        projsPathList = [str(dir) for dir in self.projectsPathListFromDataset]
+    def mergeDataset(self, args:Arg):
+        if args['format'].lower() not in args.supportFormat:
+            args['format'] = input('지원하지 않는 format입니다. 다시 입력해주세요.')
+
+        datasetPaths:list[Path] = self.getSubDirList(self.datasetsPath)
+        source_datasets = [Environment().make_importer(args['format'])(str(path)).make_dataset() for path in datasetPaths]
+
         mergePath = (self.projectsPath/self.mergeFolderName)
+        if mergePath.is_dir():
+            mergePath.rmdir()
         mergePath.mkdir(exist_ok=True)
-        merge_args = ['merge', '-o', str(mergePath), '--overwrite', *projsPathList]
-        main(merge_args)
+        dst_dir = str(mergePath)
+
+        merger = IntersectMerge(conf=IntersectMerge.Conf())
+        merged_dataset = merger(source_datasets)
+
+        merged_project = Project()
+        output_dataset = merged_project.make_dataset()
+        output_dataset.define_categories(merged_dataset.categories())
+        merged_dataset = output_dataset.update(merged_dataset)
+        itemIds = [item.id for item in merged_dataset]
+        itemIds.sort()
+        annoId = 1
+        for idx, itemId in enumerate(itemIds):
+            merged_dataset.get(itemId).attributes['id'] = idx+1
+            for anno in merged_dataset.get(itemId).annotations:
+                anno.id = annoId
+                annoId += 1
+        merged_dataset.save(save_dir=dst_dir)
         return self
 
     def exportDataset(self, args:Arg, merge=False):
@@ -76,8 +99,7 @@ class Commands:
     def mergeFunction(self):
         importArgs = ImportArg()
         exportArgs = ExportArg()
-        self.importDataset(importArgs)
-        self.mergeDataset()
+        self.mergeDataset(importArgs)
         self.exportDataset(exportArgs, merge=True)
         return self
 

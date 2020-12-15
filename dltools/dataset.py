@@ -45,6 +45,10 @@ class customDataset:
             self.thick = int(max([*list(self.img.shape[:2]*np.array([2/1080, 2/1620])),2]))
             self.root = Path(item.image.path[:item.image.path.rfind(item.id)]).parent
 
+        def setLabelName(self):
+            for anno in self.item.annotations:
+                setattr(anno, 'labelName', self.categories[anno.label].name)
+
         def saveImg(self):
             img = self.chgImageOrder(self.img)
             img = Image.fromarray(img.astype(np.uint8))
@@ -72,15 +76,20 @@ class customDataset:
             return img
 
         @staticmethod
-        def getBGRColor(anno:Union[Bbox,Polygon]):
+        def getColor(anno:Union[Bbox,Polygon], order='BGR'):
             color = customDataset.ImageData.colorMap[anno.label]
             while len(customDataset.ImageData.colorMap) != len(set(customDataset.ImageData.colorMap.values())):
                 del customDataset.ImageData.colorMap[anno.label]
                 color = customDataset.ImageData.colorMap[anno.label]
-            return color[::-1]
+            if order=='BGR':
+                return color[::-1]
+            elif order=='RGB':
+                return color
+            else:
+                AssertionError(f'order 인수를 바르게 입력하세요. 현재 입력={order}')
 
         def drawBbox(self, anno:Bbox, lineStyle, cornerStyle):
-            color = self.getBGRColor(anno)
+            color = self.getColor(anno, 'BGR')
             bbox = [int(i) for i in anno.points]
             if cornerStyle=='round':
                 self.roundRectangle(self.img,(bbox[0], bbox[1]), (bbox[2], bbox[3]), color, self.thick, linestyle=lineStyle)
@@ -160,7 +169,7 @@ class customDataset:
         def drawLabel(self, anno:Union[Bbox,Polygon]):
             bbox = list(map(lambda coord: int(np.around(coord)),anno.points))
             label = self.categories[anno.label].name
-            color = self.getBGRColor(anno)
+            color = self.getColor(anno, 'RGB')
             textColor = tuple(np.array([255,255,255]) - np.array(color))
             #draw label
             fontpath = 'NanumGothicBold.ttf'

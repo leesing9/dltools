@@ -86,7 +86,7 @@ class customDataset:
             elif order=='RGB':
                 return color
             else:
-                AssertionError(f'order 인수를 바르게 입력하세요. 현재 입력={order}')
+                raise AssertionError(f'order 인수를 바르게 입력하세요. 현재 입력={order}')
 
         def drawBbox(self, anno:Bbox, lineStyle, cornerStyle):
             color = self.getColor(anno, 'BGR')

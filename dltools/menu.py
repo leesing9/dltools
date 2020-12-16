@@ -35,6 +35,11 @@ class Menu:
                 break
             else:
                 print('입력이 잘못되었습니다. ')
+        # try:
+        #     self.command[selNum].function()
+        # except Exception as e:
+        #     print(e)
+        #     input('\npress any key...........')
         self.command[selNum].function()
         self.selectAndRun()
 

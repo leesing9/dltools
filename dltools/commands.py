@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import OrderedDict
 from datumaro.cli.__main__ import main
 from tkinter import Tk, filedialog
 from tqdm import tqdm
@@ -9,7 +8,8 @@ from dltools.dataset import customDataset
 from sys import exit
 from datumaro.components.project import Project, Environment # project-related things
 from datumaro.components.operations import IntersectMerge
-from datumaro.components.extractor import DatasetItem, Bbox, Polygon, AnnotationType, LabelCategories
+from shutil import rmtree
+from dltools.utils import remove_readonly
 
 class Commands:
     def __init__(self) -> None:
@@ -22,16 +22,7 @@ class Commands:
         self.projectsPath = (self.datasetsPath/'..'/f'projects').resolve().absolute()
         self.mergeFolderName = f'{self.datasetsPath.name}_merge'
 
-    def checkDefineVariable(self, var:str):
-        try:
-            eval(var)
-            return True
-        except AttributeError:
-            return False
-
     def importDataset(self, args:Arg):
-        if args['format'].lower() not in args.supportFormat:
-            args['format'] = input('지원하지 않는 format입니다. 다시 입력해주세요.')
         self.projectsPath.mkdir(exist_ok=True, parents=True)
         self.projectsPathListFromDataset = [self.projectsPath/path.name for path in self.getSubDirList(self.datasetsPath)]
         datasetPathList = [path for path in self.getSubDirList(self.datasetsPath) if path.is_dir()]
@@ -42,16 +33,13 @@ class Commands:
         return self
 
     def mergeDataset(self, args:Arg):
-        if args['format'].lower() not in args.supportFormat:
-            args['format'] = input('지원하지 않는 format입니다. 다시 입력해주세요.')
-
         datasetPaths:list[Path] = self.getSubDirList(self.datasetsPath)
         source_datasets = [Environment().make_importer(args['format'])(str(path)).make_dataset() for path in datasetPaths]
 
         mergePath = (self.projectsPath/self.mergeFolderName)
         if mergePath.is_dir():
-            mergePath.rmdir()
-        mergePath.mkdir(exist_ok=True)
+            rmtree(mergePath, onerror=remove_readonly)
+        mergePath.mkdir(exist_ok=True, parents=True)
         dst_dir = str(mergePath)
 
         merger = IntersectMerge(conf=IntersectMerge.Conf())
@@ -64,28 +52,35 @@ class Commands:
         itemIds = [item.id for item in merged_dataset]
         itemIds.sort()
         annoId = 1
-        for idx, itemId in enumerate(itemIds):
-            merged_dataset.get(itemId).attributes['id'] = idx+1
-            for anno in merged_dataset.get(itemId).annotations:
-                anno.id = annoId
-                annoId += 1
-        merged_dataset.save(save_dir=dst_dir)
+        if args['format']=='coco':
+            imageIdName = 'id'
+        elif args['format']=='cvat':
+            imageIdName = 'frame'
+        else:
+            imageIdName = None
+        for subset in merged_dataset.subsets():
+            for idx, itemId in enumerate(itemIds):
+                if imageIdName is not None:
+                    merged_dataset.get(itemId,subset=subset).attributes[imageIdName] = idx+1
+                for anno in merged_dataset.get(itemId, subset=subset).annotations:
+                    anno.id = annoId
+                    annoId += 1
+            merged_dataset.save(save_dir=dst_dir, save_images=True)
         return self
 
     def exportDataset(self, args:Arg, merge=False):
-        if args['format'].lower() not in args.supportFormat:
-            args['format'] = input('지원하지 않는 format입니다. 다시 입력해주세요.')
-
         if merge:
             projectsPathList = [self.projectsPath/self.mergeFolderName]
         else:
-            if not self.checkDefineVariable('self.projectsPathListFromDataset'):
+            if not hasattr(self, 'projectsPathListFromDataset'):
                 importArgs = ImportArg()
                 self.importDataset(importArgs)
             projectsPathList = self.projectsPathListFromDataset
 
         for proj in projectsPathList:
             exportPath = (self.projectsPath/'..'/'export'/f'{proj.name}_{args["format"].lower()}').absolute()
+            if exportPath.is_dir():
+                rmtree(exportPath, onerror=remove_readonly)
             exportPath.mkdir(exist_ok=True, parents=True)
             export_args = ['project','export','-f',args['format'].lower(),'-o',str(exportPath),'-p',str(proj)]
             main(export_args)
@@ -119,7 +114,7 @@ class Commands:
         return self
 
     def loadDatasetFromProjFolder(self):
-        if not self.checkDefineVariable('self.projectsPathListFromDataset'):
+        if not hasattr(self, 'projectsPathListFromDataset'):
             importArgs = ImportArg()
             self.importDataset(importArgs)
         projectFolders = [path for path in self.projectsPathListFromDataset]
@@ -128,7 +123,7 @@ class Commands:
         return self
     
     def drawItemOfEveryDataset(self, args:Arg):
-        if not self.checkDefineVariable('self.datasets'):
+        if not hasattr(self, 'projectsPathListFromDataset'):
             self.loadDatasetFromProjFolder()
         else:
             pass

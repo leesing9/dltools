@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "dutamaro: convert",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\datumaro\\__main__.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "args": ["convert", "--input-format", "cvat", "--input-path", "E:\\test\\새 폴더 (2)/task_20.12.08 dw01-4 board_hyunsung_1202_factory p1508-1513_h1.5m_a0-20_d1m_t19.8-2020_12_08_17_14_14-cvat for images 1.1/", 
+            "--output-format", "yolo", "--output-dir", "E:\\test\\export\\convert"]
+        }
+    ]
+}

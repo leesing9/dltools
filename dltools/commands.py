@@ -1,3 +1,6 @@
+from os import rename
+import numpy as np
+
 from pathlib import Path
 from datumaro.cli.__main__ import main
 from tkinter import Tk, filedialog
@@ -5,11 +8,13 @@ from tqdm import tqdm
 from dltools.args import ImportArg, ExportArg, DrawItemArg
 from dltools.args import Arg
 from dltools.dataset import customDataset
+from dltools.config import setConfig
 from sys import exit
 from datumaro.components.project import Project, Environment # project-related things
 from datumaro.components.operations import IntersectMerge
-from shutil import rmtree
+from shutil import copy, rmtree, move
 from dltools.utils import remove_readonly
+from functools import reduce
 
 class Commands:
     def __init__(self) -> None:
@@ -17,24 +22,39 @@ class Commands:
         selectedDatasetPathStr = filedialog.askdirectory()
         if not bool(selectedDatasetPathStr):
             exit()
-        self.datasetsPath = Path(selectedDatasetPathStr).absolute()
         root.destroy()
+        self.datasetsPath = Path(selectedDatasetPathStr).absolute()
+        self.datasetPathList = self.getSubDirList(self.datasetsPath)
         self.projectsPath = (self.datasetsPath/'..'/f'projects').resolve().absolute()
         self.mergeFolderName = f'{self.datasetsPath.name}_merge'
 
     def importDataset(self, args:Arg):
         self.projectsPath.mkdir(exist_ok=True, parents=True)
         self.projectsPathListFromDataset = [self.projectsPath/path.name for path in self.getSubDirList(self.datasetsPath)]
-        datasetPathList = [path for path in self.getSubDirList(self.datasetsPath) if path.is_dir()]
-        for datasetPath in datasetPathList:
+        for datasetPath in self.datasetPathList:
             projPath = self.projectsPath/datasetPath.name
             projImportArgs = ['project', 'import', '-i', str(datasetPath), '-o', str(projPath), '-f', args['format'].lower(), '--overwrite']
             main(projImportArgs)
         return self
 
     def mergeDataset(self, args:Arg):
-        datasetPaths:list[Path] = self.getSubDirList(self.datasetsPath)
-        source_datasets = [Environment().make_importer(args['format'])(str(path)).make_dataset() for path in datasetPaths]
+        config = setConfig(args['format'])
+        source_datasets = dict([(path, Environment().make_importer(args['format'])(str(path)).make_dataset()) for path in self.datasetPathList])
+        itemIdsAndPath = reduce(lambda x,y: x+y, [[(item.id, path) for item in dataset] for path, dataset in source_datasets.items()])
+        itemIdsFromSource = np.array([i[0] for i in itemIdsAndPath])
+        # for itemId, path in itemIdsAndPath:
+        for path, dataset in source_datasets.items():
+            subset = dataset.get_subset()
+            if np.sum(itemIdsFromSource==itemId)>1:
+                newItemId = '/'.join([path.name, itemId])
+                item = source_datasets[path].get(itemId, subset=subset)
+                item.id = newItemId
+                imgDir:Path = path/config.getImgDir(subset)
+                if imgDir.is_dir():
+                    for imgFile in imgDir.iterdir():
+                        move(str(imgFile), str(imgDir/path.name/f'{itemId}{item.image.ext}'))
+                (path/'images'/path.name).mkdir(exist_ok=True)
+                move(path/'images'/itemId, path/'images'/path.name/newItemId)
 
         mergePath = (self.projectsPath/self.mergeFolderName)
         if mergePath.is_dir():
@@ -43,23 +63,17 @@ class Commands:
         dst_dir = str(mergePath)
 
         merger = IntersectMerge(conf=IntersectMerge.Conf())
-        merged_dataset = merger(source_datasets)
+        merged_dataset = merger(list(source_datasets.values()))
 
         merged_project = Project()
         output_dataset = merged_project.make_dataset()
         output_dataset.define_categories(merged_dataset.categories())
         merged_dataset = output_dataset.update(merged_dataset)
         itemIds = [item.id for item in merged_dataset]
-        itemIds.sort()
         annoId = 1
-        if args['format']=='coco':
-            imageIdName = 'id'
-        elif args['format']=='cvat':
-            imageIdName = 'frame'
-        else:
-            imageIdName = None
-        for subset in merged_dataset.subsets():
-            for idx, itemId in enumerate(itemIds):
+        imageIdName = config.imageIdName
+        for subset in tqdm(merged_dataset.subsets(), desc='datasets'):
+            for idx, itemId in tqdm(enumerate(itemIds), desc='items'):
                 if imageIdName is not None:
                     merged_dataset.get(itemId,subset=subset).attributes[imageIdName] = idx+1
                 for anno in merged_dataset.get(itemId, subset=subset).annotations:

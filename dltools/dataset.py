@@ -174,8 +174,8 @@ class customDataset:
             color = self.getColor(anno, 'RGB')
             textColor = tuple(np.array([255,255,255]) - np.array(color))
             #draw label
-            fontpath = 'NanumGothicBold.ttf'
-            font = ImageFont.truetype(fontpath, int(self.fontscale))
+            fontpath = Path(__file__).parent/'NanumGothicBold.ttf'
+            font = ImageFont.truetype(str(fontpath), int(self.fontscale))
             img_label = Image.new('RGB', (int(self.fontscale*100),int(self.fontscale*1.5)),color=color)
             draw = ImageDraw.Draw(img_label)
             draw.text((0, 0), label, font = font, fill = textColor)

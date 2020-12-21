@@ -42,10 +42,10 @@ class ExportArg(Arg):
         super().__init__(ExportArg.args)
 
 class DrawItemArg(Arg):
-    args = {'lineStyle':('str', f'선의 형태. dot(점선), solid(실선)'),
-            'cornerStyle':('str', f'상자 모서리의 형태. sharp(직각), round(둥금)')}
-    limit = {'lineStyle': ['dot', 'solid'],
-             'cornerStyle':[ 'sharp', 'round' ]}
+    args = {'lineStyle':('str', f'선의 형태. (d)ot(점선), (s)olid(실선)'),
+            'cornerStyle':('str', f'상자 모서리의 형태. (s)harp(직각), (r)ound(둥금)')}
+    limit = {'lineStyle': ['d', 's'],
+             'cornerStyle':[ 's', 'r' ]}
     def __init__(self) -> None:
         super().__init__(DrawItemArg.args)
 

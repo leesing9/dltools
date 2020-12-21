@@ -10,6 +10,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from typing import Union
 from copy import deepcopy
+from dltools.args import DrawItemArg
 
 
 class customDataset:
@@ -37,8 +38,8 @@ class customDataset:
 
         def __init__(self, item:DatasetItem, categories:LabelCategories) -> None:
             self.item = item
-            self.lineStyles = ['dot', 'solid']
-            self.conerStyles = ['sharp', 'round']
+            self.lineStyles = ['(d)ot', '(s)olid']
+            self.conerStyles = ['(s)harp', '(r)ound']
             self.categories = categories
             self.img = item.image.data
             self.fontscale = max(self.img.shape[:2]*np.array([30/1080, 30/1620]))
@@ -52,7 +53,8 @@ class customDataset:
         def saveImg(self):
             img = self.chgImageOrder(self.img)
             img = Image.fromarray(img.astype(np.uint8))
-            savePath:Path = self.root/'images_draw-label'/Path(self.item.image.path).name
+            imgPath = Path(self.item.id+self.item.image.ext)
+            savePath:Path = self.root/'images_draw-label'/imgPath
             savePath.parent.mkdir(exist_ok=True, parents=True)
             img.save(savePath)
             return self
@@ -91,18 +93,18 @@ class customDataset:
         def drawBbox(self, anno:Bbox, lineStyle, cornerStyle):
             color = self.getColor(anno, 'BGR')
             bbox = [int(i) for i in anno.points]
-            if cornerStyle=='round':
+            if cornerStyle=='r': #round
                 self.roundRectangle(self.img,(bbox[0], bbox[1]), (bbox[2], bbox[3]), color, self.thick, linestyle=lineStyle)
-            elif cornerStyle=='sharp':
+            elif cornerStyle=='s': #sharp
                 self.rectangle(self.img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, self.thick, linestyle=lineStyle)
             else:
                 raise AssertionError(f'cornerStyle must be one of {", ".join(self.conerStyles)}')
             return self
 
         def rectangle(self, img, topleft, bottomright, color, thick, linestyle='solid'):
-            if linestyle=='solid':
+            if linestyle=='s': #solid
                 cv2.rectangle(img, (topleft[0], topleft[1]), (bottomright[0], bottomright[1]), color, thick)
-            elif linestyle=='dot':
+            elif linestyle=='d': #dot
                 self.dotLine(img, topleft, (bottomright[0], topleft[1]), color, thick)#top
                 self.dotLine(img, (topleft[0],bottomright[1]), (bottomright[0], bottomright[1]), color, thick)#bottom
                 self.dotLine(img, topleft, (topleft[0], bottomright[1]), color, thick)#left
@@ -110,9 +112,9 @@ class customDataset:
             return self
             
         def roundRectangle(self, img, topleft, bottomright, color, thick, linestyle='solid'):
-            if linestyle=='solid':
+            if linestyle=='s': #solid
                 _line, _ellipsis = cv2.line, cv2.ellipse
-            elif linestyle=='dot':
+            elif linestyle=='d': #dot
                 _line, _ellipsis = self.dotLine, self.dotEllipse
             else:
                 raise AssertionError(f'linestyle must be one of {", ".join(self.lineStyles)}')
@@ -172,7 +174,7 @@ class customDataset:
             color = self.getColor(anno, 'RGB')
             textColor = tuple(np.array([255,255,255]) - np.array(color))
             #draw label
-            fontpath = 'NanumGothicBold.ttf'
+            fontpath = 'dltools/NanumGothicBold.ttf'
             font = ImageFont.truetype(fontpath, int(self.fontscale))
             img_label = Image.new('RGB', (int(self.fontscale*100),int(self.fontscale*1.5)),color=color)
             draw = ImageDraw.Draw(img_label)

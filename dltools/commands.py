@@ -1,7 +1,5 @@
-from os import rename
-import numpy as np
-
-from pathlib import Path
+from copy import deepcopy
+from pathlib import Path, PosixPath
 from datumaro.cli.__main__ import main
 from tkinter import Tk, filedialog
 from tqdm import tqdm
@@ -18,6 +16,9 @@ from functools import reduce
 
 class Commands:
     def __init__(self) -> None:
+        self.selWorkDir()
+
+    def selWorkDir(self):
         root = Tk()
         selectedDatasetPathStr = filedialog.askdirectory()
         if not bool(selectedDatasetPathStr):
@@ -41,20 +42,27 @@ class Commands:
         config = setConfig(args['format'])
         source_datasets = dict([(path, Environment().make_importer(args['format'])(str(path)).make_dataset()) for path in self.datasetPathList])
         itemIdsAndPath = reduce(lambda x,y: x+y, [[(item.id, path) for item in dataset] for path, dataset in source_datasets.items()])
-        itemIdsFromSource = np.array([i[0] for i in itemIdsAndPath])
         # for itemId, path in itemIdsAndPath:
         for path, dataset in source_datasets.items():
-            subset = dataset.get_subset()
-            if np.sum(itemIdsFromSource==itemId)>1:
-                newItemId = '/'.join([path.name, itemId])
-                item = source_datasets[path].get(itemId, subset=subset)
-                item.id = newItemId
-                imgDir:Path = path/config.getImgDir(subset)
-                if imgDir.is_dir():
-                    for imgFile in imgDir.iterdir():
-                        move(str(imgFile), str(imgDir/path.name/f'{itemId}{item.image.ext}'))
-                (path/'images'/path.name).mkdir(exist_ok=True)
-                move(path/'images'/itemId, path/'images'/path.name/newItemId)
+            itemIdsInPath = set([itemId for itemId, _path in itemIdsAndPath if _path==path])
+            itemIdsOutPath = set([itemId for itemId, _path in itemIdsAndPath if _path!=path])
+            if itemIdsInPath & itemIdsOutPath:
+                for subsetName, subset in dataset.subsets().items():
+                    imgDir:Path = path/config.getImgDir(subsetName)
+                    _subset = deepcopy(subset.items)
+                    for item in _subset.values():
+                        if item.image.has_data:
+                            imgFile = Path(item.image.path)
+                            relPath = imgFile.relative_to(imgDir)
+                            newPath = imgDir/path.name/relPath
+                            oldItemId = item.id
+                            newItemId = item.id = str(path.name/relPath.parent/relPath.stem).replace('\\', '/')
+                            item.image._path = str(newPath)
+                            del subset.items[oldItemId]
+                            subset.items[newItemId] = item
+
+                            newPath.parent.mkdir(parents=True, exist_ok=True)
+                            move(str(imgFile), str(imgDir/path.name/relPath))
 
         mergePath = (self.projectsPath/self.mergeFolderName)
         if mergePath.is_dir():
@@ -72,11 +80,11 @@ class Commands:
         itemIds = [item.id for item in merged_dataset]
         annoId = 1
         imageIdName = config.imageIdName
-        for subset in tqdm(merged_dataset.subsets(), desc='datasets'):
+        for subsetName in tqdm(merged_dataset.subsets(), desc='datasets'):
             for idx, itemId in tqdm(enumerate(itemIds), desc='items'):
                 if imageIdName is not None:
-                    merged_dataset.get(itemId,subset=subset).attributes[imageIdName] = idx+1
-                for anno in merged_dataset.get(itemId, subset=subset).annotations:
+                    merged_dataset.get(itemId,subset=subsetName).attributes[imageIdName] = idx+1
+                for anno in merged_dataset.get(itemId, subset=subsetName).annotations:
                     anno.id = annoId
                     annoId += 1
             merged_dataset.save(save_dir=dst_dir, save_images=True)
@@ -96,7 +104,7 @@ class Commands:
             if exportPath.is_dir():
                 rmtree(exportPath, onerror=remove_readonly)
             exportPath.mkdir(exist_ok=True, parents=True)
-            export_args = ['project','export','-f',args['format'].lower(),'-o',str(exportPath),'-p',str(proj)]
+            export_args = ['project','export','-o',str(exportPath),'-p',str(proj),'-f',args['format'].lower(), '--', '--save-images']
             main(export_args)
         return self
 

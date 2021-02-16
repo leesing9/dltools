@@ -1,0 +1,69 @@
+[
+    {
+        "name": "재료분리",
+        "color": "#dd4719",
+        "attributes": []
+    },
+    {
+        "name": "철근노출",
+        "color": "#5dc719",
+        "attributes": []
+    },
+    {
+        "name": "손상",
+        "color": "#ddc719",
+        "attributes": []
+    },
+    {
+        "name": "누수",
+        "color": "#5d4799",
+        "attributes": []
+    },
+    {
+        "name": "박리",
+        "color": "#1dc799",
+        "attributes": [
+            {
+                "name": "321",
+                "input_type": "select",
+                "mutable": false,
+                "values": [
+                    "321",
+                    "654"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "박락",
+        "color": "#9dc799",
+        "attributes": [
+            {
+                "name": "654654",
+                "input_type": "number",
+                "mutable": false,
+                "values": [
+                    "0",
+                    "100",
+                    "1"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "백태",
+        "color": "#5d4719",
+        "attributes": [
+            {
+                "name": "321321",
+                "input_type": "number",
+                "mutable": false,
+                "values": [
+                    "0",
+                    "100",
+                    "2"
+                ]
+            }
+        ]
+    }
+]

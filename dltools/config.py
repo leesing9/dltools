@@ -35,7 +35,7 @@ class cvat(DefaultConfig):
     def __init__(self) -> None:
         self.imageIdName = 'frame'
         self.defaultSubset = 'default'
-        self.defaultImgDir = Path('annotations')
+        self.defaultImgDir = Path('images')
         self.defaultAnnoDir = Path('')
 
 class datumaro(DefaultConfig):

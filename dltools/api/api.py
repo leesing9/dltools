@@ -19,7 +19,11 @@ class API:
         else:
             target_url = f'{cls.base_url}/api/v1/{target}'
 
-        if cls.base_url[:7] != 'http://':
+        if cls.base_url.startswith('http://'):
+            target_url = cls.base_url
+        elif cls.base_url.startswith('https://'):
+            target_url = cls.base_url.replace('https://', 'http://')
+        else:
             target_url = ''.join(['http://',target_url])
 
         return target_url

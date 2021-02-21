@@ -8,13 +8,13 @@ class UserAPI(CommAPI):
         super().__init__(UserInfo)
         self.target_url = self.get_api_url('users')
 
-    @staticmethod
-    def get_params(username:str=None, id:int=None, page:int=None, page_size:int=None)->Union[dict,bool]:
-        params = {'username':username,
+    def get(self, search:str=None, id:int=None, page:int=None, page_size:int=None, **kwd)->Union[dict,bool]:
+        params = {'search':search,
                   'id': id,
                   'page':page,
                   'page_size':page_size}
-        return {key:val for key, val in params.items() if val}
+        params.update(kwd)
+        return super().get(**params)
 
     def create(self):
         raise AttributeError

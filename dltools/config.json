@@ -1,9 +1,9 @@
 {
     "projectId": 1,
-    "base_url": "tmecnc62.iptime.org:11380",
+    "base_url": "http://tmecnc62.iptime.org:12380",
     "token": "80a6b6fd3846fed4dabe82273a3c10a35a81fb06",
     "username": "serveradmin",
-    "password": "gAAAAABgJ2vELGX-1bYbpqpBqqutNNfJkboGX_i2_8_VoPH0auRknbbUWScbsTdubhBOk89N_PKMsNgG8RjMYnTwPoxcwkC7-A==",
+    "password": "gAAAAABgMo2He3b1vX25OEuEWLL3_kb1i93xFgSYl4EOFm1TZDz4snajxSDXVZRyVGfmG90JxsZNrSBEIGFVZbKVOivSz_WFLQ==",
     "hourlyBboxWorkingCount": 100,
     "hourlySegWorkingCount": 25,
     "dailyWorkingHour": 1000,

@@ -10,7 +10,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from typing import Union
 from copy import deepcopy
-from dltools.args import DrawItemArg
+from dltools.dataset.args import DrawItemArg
 
 
 class customDataset:

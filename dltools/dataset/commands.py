@@ -1,17 +1,19 @@
-from copy import deepcopy
-from pathlib import Path, PosixPath
+from dltools.dataset.args import ImportArg, ExportArg, DrawItemArg
+from dltools.dataset.args import Arg
+from dltools.dataset.dataset import customDataset
+from dltools.dataset.config import setConfig
+from dltools.dataset.utils import remove_readonly
+
 from datumaro.cli.__main__ import main
-from tkinter import Tk, filedialog
-from tqdm import tqdm
-from dltools.args import ImportArg, ExportArg, DrawItemArg
-from dltools.args import Arg
-from dltools.dataset import customDataset
-from dltools.config import setConfig
-from sys import exit
 from datumaro.components.project import Project, Environment # project-related things
 from datumaro.components.operations import IntersectMerge
+
+from copy import deepcopy
+from pathlib import Path, PosixPath
+from tkinter import Tk, filedialog
+from tqdm import tqdm
+from sys import exit
 from shutil import copy, rmtree, move
-from dltools.utils import remove_readonly
 from functools import reduce
 
 class Commands:

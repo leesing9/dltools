@@ -50,11 +50,12 @@ class customDataset:
             for anno in self.item.annotations:
                 setattr(anno, 'labelName', self.categories[anno.label].name)
 
-        def saveImg(self):
+        def saveImg(self, savePath:Path=None):
             img = self.chgImageOrder(self.img)
             img = Image.fromarray(img.astype(np.uint8))
             imgPath = Path(self.item.id+self.item.image.ext)
-            savePath:Path = self.root/'images_draw-label'/imgPath
+            if savePath is None:
+                savePath:Path = self.root/'images_draw-label'/imgPath
             savePath.parent.mkdir(exist_ok=True, parents=True)
             img.save(savePath)
             return self

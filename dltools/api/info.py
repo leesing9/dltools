@@ -39,6 +39,8 @@ class Info(dict):
                             setattr(self, elem, [SimpleJobInfo(i) for i in self[elem]])
                     elif elem =='frames':
                         setattr(self, elem, [FrameMetaInfo(i) for i in self[elem]])
+                    elif elem =='tracks':
+                        setattr(self, elem, [LabeledTrackInfo(i) for i in self[elem]])
                     elif elem =='shapes':
                         if self.__class__ == LabeledDataInfo:
                             setattr(self, elem, [LabeledShapeInfo(i) for i in self[elem]])
@@ -46,6 +48,8 @@ class Info(dict):
                             setattr(self, elem, [TrackedShapeInfo(i) for i in self[elem]])
                         else:
                             raise Exception()
+                    elif elem =='tags':
+                        setattr(self, elem, [LabeledImageInfo(i) for i in self[elem]])
                     elif elem =='comment_set':
                         setattr(self, elem, [CommentInfo(i) for i in self[elem]])
                     else:
@@ -122,6 +126,10 @@ class LabelInfo(Info):
 
 class TaskInfo(Info):
     Elems = _Enum('Elems', ' '.join(['url', 'id', 'name', 'project_id', 'mode', 'labels', 'data', 'dimension',
+                'owner', 'assignee', 'bug_tracker', 'segments', 'size', 'image_quality',
+                'created_data', 'updated_date', 'status', 'overlap', 'segment_size']).upper())
+
+    DfElems = _Enum('DfElems', ' '.join(['id', 'name mode project_id', 'labels', 'data', 'dimension',
                 'owner', 'assignee', 'bug_tracker', 'segments', 'size', 'image_quality',
                 'created_data', 'updated_date', 'status', 'overlap', 'segment_size']).upper())
 

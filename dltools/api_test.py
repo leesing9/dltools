@@ -126,15 +126,15 @@ print(task.get_id(task_r1.id))
 
 #task - upload_anno
 print('\n#task - upload_anno')
-print(task.upload_anno(task_r1.id, 'COCO 1.0', 'f:/task_20210111_bbox_파손-2021_01_14_14_51_27-coco 1.0/annotations/instances_default.json'))
+print(task.upload_annotations(task_r1.id, 'COCO 1.0', 'f:/task_20210111_bbox_파손-2021_01_14_14_51_27-coco 1.0/annotations/instances_default.json'))
 
 #task - download_anno
 print('\n#task - download_anno')
-print(task.download_anno(task_r1.id, 'CVAT for images 1.1', 'download_anno_test.zip', 'f:/'))
+print(task.get_annotations(task_r1.id, 'CVAT for images 1.1', 'download_anno_test.zip', 'f:/', download=True))
 
 #task - del anno
 print('\n#task - del anno')
-print(task.del_anno(task_r1.id))
+print(task.del_annotations(task_r1.id))
 
 #task - download frame
 print('\n#task - download frame')

@@ -24,6 +24,6 @@ class ProjectAPI(CommAPI):
         r.raise_for_status()
         result = r.json()
         result['results'] = [TaskInfo(task) for task in result['results']]
-        return result
+        return result['results']
 
 # if __name__ == '__main__':

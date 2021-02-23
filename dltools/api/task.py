@@ -4,7 +4,7 @@ from PIL import Image
 from enum import Enum
 
 from dltools.api.api import CommAPI, run_api
-from dltools.api.info import DataMetaInfo, JobInfo,StatusInfo, TaskInfo
+from dltools.api.info import DataMetaInfo, JobInfo, LabeledDataInfo,StatusInfo, TaskInfo
 
 class TaskAPI(CommAPI):
     def __init__(self) -> None:
@@ -24,7 +24,7 @@ class TaskAPI(CommAPI):
         return super().get(**params)
 
     @run_api
-    def download_anno(self, id, format, filename, outdir):
+    def get_annotations(self, id, format='COCO 1.0', filename=None, outdir=None, download=False):
         '''            
             'COCO 1.0',
             'CVAT 1.1',
@@ -37,24 +37,31 @@ class TaskAPI(CommAPI):
             'YOLO 1.1',
             'ImageNet 1.0'
         '''
-        url = self.target_url+f'/{id}/annotations?format={format}&filename={filename}'
-        while True:
+        if download:
+            url = self.target_url+f'/{id}/annotations?format={format}&filename={filename}'
+            while True:
+                r = self.session.get(url)
+                self.r = r
+                r.raise_for_status()
+                if r.status_code == 201:
+                    break
+
+            r = self.session.get(url + '&action=download')
+            self.r = r
+            r.raise_for_status()
+
+            with open(str(Path(outdir)/filename), 'wb') as fp:
+                fp.write(r.content)
+            return r.ok
+        else:
+            url = self.target_url+f'/{id}/annotations'
             r = self.session.get(url)
             self.r = r
             r.raise_for_status()
-            if r.status_code == 201:
-                break
-
-        r = self.session.get(url + '&action=download')
-        self.r = r
-        r.raise_for_status()
-
-        with open(str(Path(outdir)/filename), 'wb') as fp:
-            fp.write(r.content)
-        return r.ok
+            return LabeledDataInfo(r.json())
     
     @run_api
-    def upload_anno(self, id:int, format:str, filename:Path):
+    def upload_annotations(self, id:int, format:str, filename:Path):
         '''            
             'COCO 1.0',
             'CVAT 1.1',
@@ -79,14 +86,14 @@ class TaskAPI(CommAPI):
         return r.ok
 
     @run_api
-    def del_anno(self, id:int):
+    def del_annotations(self, id:int):
         r = self.session.delete(self.target_url+f'/{id}/annotations')
         self.r = r
         r.raise_for_status()
         return r.ok
 
     @run_api
-    def download_frame(self, id:int, frame_id:int, outdir:str):
+    def download_frame(self, id:int, frame_id:int, outdir:str, save=True):
         url = self.target_url + f'/{id}/data?type=frame&number={frame_id}&quality=original'
         r = self.session.get(url)
         self.r = r
@@ -96,8 +103,8 @@ class TaskAPI(CommAPI):
         # im_ext = mimetypes.guess_extension(mime_type)
         meta = self.get_data_meta(id)
         filename = Path(meta.frames[frame_id].name).name
-        img.save(str(Path(outdir)/filename))
-        return img
+        if save: img.save(str(Path(outdir)/filename))
+        return filename, img
 
     @run_api
     def attach_data(self, id:int, resource_type:str, resources:list, image_quality:int=100):

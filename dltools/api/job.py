@@ -4,30 +4,31 @@ from dltools.api.info import CombinedIssueInfo, DataMetaInfo, JobInfo, LabeledDa
 class JobAPI(CommAPI):
     def __init__(self) -> None:
         super().__init__(JobInfo)
-        self.target_url = self.get_api_url('jobs')
+        self.target = 'jobs'
+        self.target_url = self.get_api_url(self.target)
 
-    def get_anno(self, job_id:int):
-        url = self.target_url + f'/{job_id}/annotaions'
+    def get_annotations(self, job_id:int):
+        url = self.target_url + f'/{job_id}/annotations'
         r = self.session.get(url)
         self.r = r
         r.raise_for_status()
         return LabeledDataInfo(r.json())
 
-    def put_anno(self, job_id:int, **kwd):
+    def put_annotations(self, job_id:int, **kwd):
         url = self.target_url + f'/{job_id}/annotaions'
         r = self.session.put(url, data=kwd)
         self.r = r
         r.raise_for_status()
         return LabeledDataInfo(r.json())
 
-    def patch_anno(self, job_id:int, **kwd):
+    def patch_annotations(self, job_id:int, **kwd):
         url = self.target_url + f'/{job_id}/annotaions'
         r = self.session.patch(url, data=kwd)
         self.r = r
         r.raise_for_status()
         return LabeledDataInfo(r.json())
 
-    def del_anno(self, job_id:int):
+    def del_annotations(self, job_id:int):
         url = self.target_url + f'/{job_id}/annotaions'
         r = self.session.delete(url)
         self.r = r

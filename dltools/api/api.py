@@ -70,6 +70,7 @@ class CommAPI(API):
     def __init__(self, info_class) -> None:
         self.InfoClass = info_class
         self.target_url = self.get_api_url('')
+        self.r = EasyDict({'text':''})
 
     @run_api
     def get(self, **params)->Union[dict,bool]: 

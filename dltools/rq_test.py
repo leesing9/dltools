@@ -1,21 +1,21 @@
 import numpy as np
 
-from datumaro.components.dataset import Dataset
-from datumaro.components.extractor import Bbox, DatasetItem, Polygon
 from dltools.api.job import JobAPI
-from time import sleep
-from dltools.api.info import JobInfo, LabeledDataInfo, AuthorInfo, LabelInfo, ProjectInfo, TaskInfo, UserInfo, AttributeInfo
 from dltools.api import AuthAPI, TaskAPI
 from dltools.dataset.dataset import customDataset
+from dltools.analytics import ProjectAnaly, makeReport
 
 from pathlib import Path
 from typing import List
+from datumaro.components.dataset import Dataset
+from datumaro.components.extractor import Bbox, DatasetItem, Polygon
+from time import sleep
 
 base_url = 'http://tmecnc62.iptime.org:12380'
 auth = AuthAPI(base_url)
 
-username = 'serveradmin'
-password = 'wnrWkd131@Cv'
+username = 'test'
+password = 'Tm123456'
 
 #login
 auth.login(username=username, password=password)
@@ -64,17 +64,21 @@ def job_assign(job_id:int, assignee_id:int):
     job = JobAPI()
     job.patch_id(job_id, assignee_id=assignee_id)
 
-job_assign(18, 7)
+# job_assign(18, 7)
 
-# rq33 - 보고서
+# rq28, 33 - 통계&보고서
+def export_report():
+    prjanaly = ProjectAnaly(62)
+    assignee_table, label_table = prjanaly()
+    makeReport(dataFrame1 = assignee_table, dataFrame2 = label_table, saveExcelName = 'Report')
 
 # rq38 - 열화상 이미지 온도 csv 파일로 출력
 
 #task - get tasks
-print('\n#task - get tasks')
-print(task.get())
+# print('\n#task - get tasks')
+# print(task.get())
 
-#task - download frame
-print('\n#task - download frame')
+# #task - download frame
+# print('\n#task - download frame')
 
 #change assignee

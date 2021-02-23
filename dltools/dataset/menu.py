@@ -1,7 +1,7 @@
 from easydict import EasyDict
 import sys
 from typing import Callable
-from dltools.utils import consolClear
+from dltools.dataset.utils import consolClear
 
 class Menu:
     prevMunu = None

@@ -1,4 +1,5 @@
 __pycache__
 *.pyc
-._*
 .coverage
+
+rq_test.py

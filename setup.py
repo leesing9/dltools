@@ -10,6 +10,7 @@ install_requires = [
         'tensorflow',
         'requests',
         'pyqt5',
+        'openpyxl'
         'seaborn',
         'matplotlib',
         'cryptography',
@@ -20,9 +21,9 @@ install_requires = [
 check_call([sys.executable, '-m'] + "pip install -r requirements.txt".split())
 setup(
     name='dltools',
-    version='2.1.1',
+    version='2.1.2',
     packages=find_packages(),
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=install_requires,
     include_package_data = True,
     entry_points={

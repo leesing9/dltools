@@ -49,6 +49,13 @@ class DrawItemArg(Arg):
     def __init__(self) -> None:
         super().__init__(DrawItemArg.args)
 
+class NoAnnoFilterArg(Arg):
+    supportFormat = ['y', 'n']
+    args = {'no_anno_filter':('str', f'annotation이 없는 이미지를 제외하시겠습니까? y/n')}
+    limit = {'no_anno_filter': supportFormat}
+    def __init__(self) -> None:
+        super().__init__(NoAnnoFilterArg.args)
+
 if __name__ == "__main__":
     a = ImportArg()
     

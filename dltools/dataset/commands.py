@@ -1,4 +1,4 @@
-from dltools.dataset.args import ImportArg, ExportArg, DrawItemArg, Arg
+from dltools.dataset.args import ImportArg, ExportArg, DrawItemArg, Arg, NoAnnoFilterArg
 from dltools.dataset.dataset import customDataset
 from dltools.dataset.config import setConfig
 from dltools.dataset.utils import remove_readonly
@@ -12,6 +12,7 @@ from datumaro.components.extractor import Bbox, DatasetItem, Polygon
 from copy import deepcopy
 from pathlib import Path, PosixPath
 from tkinter import Tk, filedialog
+from datumaro.components.dataset import Dataset
 from tqdm import tqdm
 from sys import exit
 from shutil import rmtree, move
@@ -50,9 +51,9 @@ class Commands:
             main(projImportArgs)
         return self
 
-    def mergeDataset(self, args:Arg):
-        config = setConfig(args['format'])
-        source_datasets = dict([(path, Environment().make_importer(args['format'])(str(path)).make_dataset()) for path in self.datasetPathList])
+    def mergeDataset(self, import_args:Arg, filter_arg:Arg):
+        config = setConfig(import_args['format'])
+        source_datasets = dict([(path, Environment().make_importer(import_args['format'])(str(path)).make_dataset()) for path in self.datasetPathList])
         itemIdsAndPath = reduce(lambda x,y: x+y, [[(item.id, path) for item in dataset] for path, dataset in source_datasets.items()])
         # for itemId, path in itemIdsAndPath:
         for path, dataset in source_datasets.items():
@@ -63,17 +64,17 @@ class Commands:
                     imgDir:Path = path/config.getImgDir(subsetName)
                     _subset = deepcopy(subset.items)
                     for item in _subset.values():
-                        if item.image.has_data:
-                            imgFile = Path(item.image.path)
-                            relPath = imgFile.relative_to(imgDir)
-                            newPath = imgDir/path.name/relPath
-                            oldItemId = item.id
-                            newItemId = item.id = str(path.name/relPath.parent/relPath.stem).replace('\\', '/')
-                            item.image._path = str(newPath)
-                            del subset.items[oldItemId]
-                            subset.items[newItemId] = item
+                        imgFile = Path(item.image.path)
+                        relPath = imgFile.relative_to(imgDir)
+                        newPath = imgDir/path.name/relPath
+                        oldItemId = item.id
+                        newItemId = item.id = str(path.name/relPath.parent/relPath.stem).replace('\\', '/')
+                        item.image._path = str(newPath)
+                        del subset.items[oldItemId]
+                        subset.items[newItemId] = item
+                        newPath.parent.mkdir(parents=True, exist_ok=True)
 
-                            newPath.parent.mkdir(parents=True, exist_ok=True)
+                        if item.image.has_data:
                             move(str(imgFile), str(imgDir/path.name/relPath))
 
         mergePath = (self.projectsPath/self.mergeFolderName)
@@ -89,17 +90,29 @@ class Commands:
         output_dataset = merged_project.make_dataset()
         output_dataset.define_categories(merged_dataset.categories())
         merged_dataset = output_dataset.update(merged_dataset)
-        itemIds = [item.id for item in merged_dataset]
+        if filter_arg['no_anno_filter'].lower()=='y':
+            filtered_dataset = Project().make_dataset()
+            filtered_dataset.define_categories(merged_dataset.categories())
+            merged_dataset = filtered_dataset.update(merged_dataset.select(lambda item: len(item.annotations) != 0))
         annoId = 1
         imageIdName = config.imageIdName
-        for subsetName in tqdm(merged_dataset.subsets(), desc='datasets'):
-            for idx, itemId in tqdm(enumerate(itemIds), desc='items'):
-                if imageIdName is not None:
-                    merged_dataset.get(itemId,subset=subsetName).attributes[imageIdName] = idx+1
-                for anno in merged_dataset.get(itemId, subset=subsetName).annotations:
-                    anno.id = annoId
-                    annoId += 1
-            merged_dataset.save(save_dir=dst_dir, save_images=True)
+        for idx, item in tqdm(enumerate(merged_dataset), desc='datasets'):
+            if imageIdName is not None:
+                item.attributes[imageIdName] = idx+1
+            for anno in item.annotations:
+                anno.id = annoId
+                annoId += 1
+        merged_dataset.save(save_dir=dst_dir, save_images=True)
+
+
+        # for subsetName, subset in tqdm(merged_dataset.subsets().items(), desc='datasets'):
+        #     for idx, itemId in tqdm(enumerate(itemIds), desc='items'):
+        #         if imageIdName is not None:
+        #             merged_dataset.get(itemId,subset=subsetName).attributes[imageIdName] = idx+1
+        #         for anno in merged_dataset.get(itemId, subset=subsetName).annotations:
+        #             anno.id = annoId
+        #             annoId += 1
+        #     merged_dataset.save(save_dir=dst_dir, save_images=True)
         return self
 
     def exportDataset(self, args:Arg, merge=False):
@@ -128,7 +141,8 @@ class Commands:
     def mergeFunction(self):
         importArgs = ImportArg()
         exportArgs = ExportArg()
-        self.mergeDataset(importArgs)
+        no_anno_filter_arg = NoAnnoFilterArg()
+        self.mergeDataset(importArgs, no_anno_filter_arg)
         self.exportDataset(exportArgs, merge=True)
         return self
 

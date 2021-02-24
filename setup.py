@@ -10,6 +10,8 @@ install_requires = [
         'tensorflow',
         'requests',
         'pyqt5',
+        'seaborn',
+        'matplotlib',
         'cryptography',
         "pycocotools @ git+https://github.com/philferriere/cocoapi.git#egg=pycocotools&subdirectory=PythonAPI ;platform_system=='Windows'",
         'datumaro @ git+https://github.com/zmfkzj/datumaro'
@@ -18,7 +20,7 @@ install_requires = [
 check_call([sys.executable, '-m'] + "pip install -r requirements.txt".split())
 setup(
     name='dltools',
-    version='2.0.0',
+    version='2.1.0',
     packages=find_packages(),
     python_requires='>=3.7',
     install_requires=install_requires,

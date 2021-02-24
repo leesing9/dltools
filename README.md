@@ -4,6 +4,12 @@ DeepLabel 지원을 위한 툴
 - windows10, python 3.7 이상에서 테스트 완료
 - window에서 visual C++ 14.0 필요
   - [visual studio](https://visualstudio.microsoft.com/ko/downloads/) 최신버전 설치 후 C++ 개발도구 설치
+- git 설치
+```bash
+apt-get install git # 우분투에서만 가능
+or
+conda install git #Anaconda 설치 시, 윈도우에서도 가능
+```
 - 명령 프롬프트에서 다음 커맨드 실행
 ```bash
 pip install git+https://github.com/zmfkzj/dltools.git

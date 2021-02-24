@@ -7,11 +7,6 @@ from dltools.api.task import TaskAPI
 
 from pathlib import Path
 
-base_url = 'http://tmecnc62.iptime.org:12380'
-auth = AuthAPI(base_url)
-
-username = 'serveradmin'
-password = 'wnrWkd131@Cv'
 
 #login
 print('\nlogin')

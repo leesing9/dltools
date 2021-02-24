@@ -108,7 +108,7 @@ class CommAPI(API):
             
     @run_api
     def patch_id(self, id, **kwd):
-        r = self.session.patch(self.target_url + f'/{id}', data=kwd)
+        r = self.session.patch(self.target_url + f'/{id}', json=kwd)
         self.r = r
         r.raise_for_status()
         return self.InfoClass(r.json())

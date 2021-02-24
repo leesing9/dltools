@@ -99,19 +99,3 @@ class ProjectAnaly:
     def export_report(self, outdir):
         makeReport(dataFrame1 = self.assignee_table, dataFrame2 = self.label_table, saveExcelName = 'Report', outdir=outdir)
         
-if __name__ =='__main__':
-    base_url = 'http://tmecnc62.iptime.org:12380'
-    auth = AuthAPI(base_url)
-
-    username = 'serveradmin'
-    password = 'wnrWkd131@Cv'
-
-    #login
-    auth.login(username=username, password=password)
-    #task api class call
-    task = TaskAPI()
-    job = JobAPI()
-
-    prjanaly = ProjectAnaly(62)
-    assignee_table, label_table = prjanaly()
-    makeReport(dataFrame1 = assignee_table, dataFrame2 = label_table, saveExcelName = 'Report')

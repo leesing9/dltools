@@ -1,3 +1,4 @@
+from dltools.api.user import UserAPI
 import numpy as np
 
 from dltools.api.job import JobAPI
@@ -10,7 +11,6 @@ from typing import List
 from datumaro.components.dataset import Dataset
 from datumaro.components.extractor import Bbox, DatasetItem, Polygon
 from time import sleep
-
 
 # rq17 - 라벨 그려진 이미지 다운
 def download_labeled_image(task_api, task_id:int, frame_id:int, outdir:str):
@@ -49,11 +49,13 @@ def download_labeled_image(task_api, task_id:int, frame_id:int, outdir:str):
 # rq28 - 통계기능
 
 # rq29 - 할당 편의성 개선
-def job_assign(job_id:int, assignee_id:int):
+def job_assign(project_id:int, job_count:int):
+    user = UserAPI()
     job = JobAPI()
-    job.patch_id(job_id, assignee_id=assignee_id)
-
-# job_assign(18, 7)
+    user_ids = [user.id for user in user.get() if ]
+    empty_jobs = [job.id for job in ProjectAnaly(project_id).jobs]
+    for user_id, job_id in zip(user_ids*job_count, empty_jobs):
+        job.patch_id(job_id, assignee_id=user_id)
 
 # rq28, 33 - 통계&보고서
 def export_report(project_id):
@@ -71,18 +73,3 @@ def export_report(project_id):
 # print('\n#task - download frame')
 
 #change assignee
-
-if __name__ =='__main__':
-    base_url = 'http://tmecnc62.iptime.org:11180'
-    auth = AuthAPI(base_url)
-
-    username = 'tm'
-    password = 'tm123456'
-
-    #login
-    auth.login(username=username, password=password)
-    #task api class call
-    task_api = TaskAPI()
-    job_api = JobAPI()
-    # export_report(62)
-    download_labeled_image(7, 0, 'd:')

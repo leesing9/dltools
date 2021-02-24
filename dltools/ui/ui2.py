@@ -8,7 +8,7 @@ from pathlib import Path
 from PIL import Image
 
 from dltools.dataset.utils import readJson
-from dltools.api import AuthAPI, UserAPI
+from dltools.api import AuthAPI, UserAPI, JobAPI
 from dltools.dataset.crypto import Crypt
 from dltools.dataset.temperature_RGB import thermal_matching, dictionary
 from dltools.analytics.project import ProjectAnaly
@@ -62,6 +62,11 @@ class WindowClass(QMainWindow, form_class) :
         #보고서
         self.pushButton_8.clicked.connect(self.report)
         self.pushButton_12.clicked.connect(lambda:self.single_dir_select(self.lineEdit_8))
+        
+        #job 할당
+        self.pushButton_13.clicked.connect(self.job_assign)
+        #job 할당 초기화
+        self.pushButton_14.clicked.connect(self.assign_init)
 
     @error_massage
     def report(self, *a): return ProjectAnaly(int(self.lineEdit_5.text())).export_report(self.lineEdit_8.text())
@@ -130,9 +135,13 @@ class WindowClass(QMainWindow, form_class) :
             export_format = 'tfrecord'
         elif self.radioButton_5.isChecked():
             export_format = 'voc_segmentations'
+        
+        if self.checkBox.isChecked()==True:
+            no_anno_filter = 'y'
+        else: no_anno_filter = 'n'
 
         self.cmd.set_working_dir(self.lineEdit_6.text())
-        self.cmd.mergeDataset({'format':import_format}) 
+        self.cmd.mergeDataset({'format':import_format}, {'no_anno_filter':no_anno_filter}) 
         self.cmd.exportDataset({'format':export_format}, merge=True)
 
     @error_massage
@@ -143,7 +152,25 @@ class WindowClass(QMainWindow, form_class) :
             filename = Path(path).stem
             thermal_matching(image, dictionary, self.lineEdit_7.text(), filename)
 
+    @error_massage
+    def job_assign(self, *a):
+        project_id = int(self.lineEdit_10.text())
+        job_count = int(self.lineEdit_9.text())
+        user_api = UserAPI()
+        job_api = JobAPI()
+        user_ids = [user.id for user in user_api.get()['results'] if 'annotator' in user.groups if user['is_active']]
+        empty_jobs = [job.id for job in ProjectAnaly(project_id).jobs if (job.status=='annotation') and (job.assignee is None)]
+        for user_id, job_id in zip(user_ids*job_count, empty_jobs):
+            job_api.patch_id(job_id, assignee_id=user_id)
 
+    @error_massage
+    def assign_init(self, *a):
+        project_id = int(self.lineEdit_10.text())
+        job_api = JobAPI()
+        anno_status_jobs = [job.id for job in ProjectAnaly(project_id).jobs if (job.status=='annotation') and (job.assignee is not None)]
+        for job_id in anno_status_jobs:
+            job_api.patch_id(job_id, assignee_id=None)
+        
 
 if __name__ == "__main__" :
     #QApplication : 프로그램을 실행시켜주는 클래스

@@ -20,7 +20,7 @@ install_requires = [
 check_call([sys.executable, '-m'] + "pip install -r requirements.txt".split())
 setup(
     name='dltools',
-    version='2.1.0',
+    version='2.1.1',
     packages=find_packages(),
     python_requires='>=3.7',
     install_requires=install_requires,

@@ -2,7 +2,7 @@ import sys
 from dltools.ui.ui2 import QApplication, WindowClass
 
 
-if __name__ == '__main__':
+def main():
     app = QApplication(sys.argv) 
 
     #WindowClass의 인스턴스 생성

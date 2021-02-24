@@ -21,7 +21,7 @@ def run_api(func:FunctionType):
 
         
 class API:
-    def __init__(self, base_url:str) -> None:
+    def __init__(self, base_url:str='') -> None:
         API.base_url = base_url
         self.r = EasyDict({'text':''})
 
@@ -42,16 +42,8 @@ class API:
         return target_url
 
     @run_api
-    def login(self, username:str, password:str)->Union[requests.Session,bool]:
+    def login(self, username:str=None, password:str=None)->Union[requests.Session,bool]:
         session = requests.session()
-        crypto = Crypt()
-
-        cfg_path = Path(__file__).parent/'../config.json'
-        cfg = readJson(cfg_path)
-        cfg['username'] = username
-        cfg['password'] = crypto.encrypt(password)
-        cfg['base_url'] = API.base_url
-        saveJson(cfg_path, cfg)
 
         data = {'username': username,
                 'password': password}
@@ -62,6 +54,15 @@ class API:
         if 'csrftoken' in r.cookies:
             session.headers['X-CSRFToken'] = r.cookies['csrftoken']
         API.session = session
+
+        crypto = Crypt()
+        cfg_path = Path(__file__).parent/'../config.json'
+        cfg = readJson(cfg_path)
+        cfg['username'] = username
+        cfg['password'] = crypto.encrypt(password)
+        cfg['base_url'] = API.base_url
+        saveJson(cfg_path, cfg)
+
         return r.json()
     
 
@@ -88,6 +89,8 @@ class CommAPI(API):
             r = self.session.get(self.target_url + f'/{id}')
             self.r = r
             r.raise_for_status()
+            if id=='self':
+                return [self.InfoClass(target) for target in r.json()['results']][0]
             return self.InfoClass(r.json())
         else:
             print('id가 \"self\"나 \"숫자\"가 아닙니다.')

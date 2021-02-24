@@ -95,6 +95,9 @@ class ProjectAnaly:
                 anno_list.append(deepcopy(shape))
         
         return anno_list
+
+    def export_report(self, outdir):
+        makeReport(dataFrame1 = self.assignee_table, dataFrame2 = self.label_table, saveExcelName = 'Report', outdir=outdir)
         
 if __name__ =='__main__':
     base_url = 'http://tmecnc62.iptime.org:12380'

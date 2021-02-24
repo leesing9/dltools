@@ -11,25 +11,14 @@ from datumaro.components.dataset import Dataset
 from datumaro.components.extractor import Bbox, DatasetItem, Polygon
 from time import sleep
 
-base_url = 'http://tmecnc62.iptime.org:12380'
-auth = AuthAPI(base_url)
-
-username = 'test'
-password = 'Tm123456'
-
-#login
-auth.login(username=username, password=password)
-#task api class call
-task = TaskAPI()
-job = JobAPI()
 
 # rq17 - 라벨 그려진 이미지 다운
-def download_labeled_image(task_id:int, frame_id:int, outdir:str):
-    filename, img = task.download_frame(task_id, frame_id, outdir, save=False)
-    labels = dict([(label.id, label) for label in task.get_id(task_id).labels])
-    jobs = task.get_jobs(task_id)
+def download_labeled_image(task_api, task_id:int, frame_id:int, outdir:str):
+    filename, img = task_api.download_frame(task_id, frame_id, outdir, save=False)
+    labels = dict([(label.id, label) for label in task_api.get_id(task_id).labels])
+    jobs = task_api.get_jobs(task_id)
     job_id_with_frame = [job.id for job in jobs if (int(job.start_frame) <= frame_id) & (frame_id <= int(job.stop_frame))]
-    job_annos_list = [job.get_annotations(job_id) for job_id in job_id_with_frame]
+    job_annos_list = [job_api.get_annotations(job_id) for job_id in job_id_with_frame]
     annos = [[anno for anno in job_annos.shapes if anno.frame==frame_id][0] for job_annos in job_annos_list]
     categories=[label.name for label in labels.values()]
     items = []
@@ -67,8 +56,8 @@ def job_assign(job_id:int, assignee_id:int):
 # job_assign(18, 7)
 
 # rq28, 33 - 통계&보고서
-def export_report():
-    prjanaly = ProjectAnaly(62)
+def export_report(project_id):
+    prjanaly = ProjectAnaly(project_id)
     assignee_table, label_table = prjanaly()
     makeReport(dataFrame1 = assignee_table, dataFrame2 = label_table, saveExcelName = 'Report')
 
@@ -82,3 +71,18 @@ def export_report():
 # print('\n#task - download frame')
 
 #change assignee
+
+if __name__ =='__main__':
+    base_url = 'http://tmecnc62.iptime.org:11180'
+    auth = AuthAPI(base_url)
+
+    username = 'tm'
+    password = 'tm123456'
+
+    #login
+    auth.login(username=username, password=password)
+    #task api class call
+    task_api = TaskAPI()
+    job_api = JobAPI()
+    # export_report(62)
+    download_labeled_image(7, 0, 'd:')

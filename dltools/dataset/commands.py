@@ -1,5 +1,4 @@
-from dltools.dataset.args import ImportArg, ExportArg, DrawItemArg
-from dltools.dataset.args import Arg
+from dltools.dataset.args import ImportArg, ExportArg, DrawItemArg, Arg
 from dltools.dataset.dataset import customDataset
 from dltools.dataset.config import setConfig
 from dltools.dataset.utils import remove_readonly
@@ -7,18 +6,26 @@ from dltools.dataset.utils import remove_readonly
 from datumaro.cli.__main__ import main
 from datumaro.components.project import Project, Environment # project-related things
 from datumaro.components.operations import IntersectMerge
+from datumaro.components.dataset import Dataset
+from datumaro.components.extractor import Bbox, DatasetItem, Polygon
 
 from copy import deepcopy
 from pathlib import Path, PosixPath
 from tkinter import Tk, filedialog
 from tqdm import tqdm
 from sys import exit
-from shutil import copy, rmtree, move
+from shutil import rmtree, move
 from functools import reduce
+import numpy as np
+
+from dltools.api import JobAPI, TaskAPI
+from dltools.analytics import ProjectAnaly, makeReport
 
 class Commands:
     def __init__(self) -> None:
-        self.selWorkDir()
+        # self.selWorkDir()
+        self.task = TaskAPI()
+        self.job = JobAPI()
 
     def selWorkDir(self):
         root = Tk()
@@ -26,6 +33,9 @@ class Commands:
         if not bool(selectedDatasetPathStr):
             exit()
         root.destroy()
+        return selectedDatasetPathStr
+
+    def set_working_dir(self, selectedDatasetPathStr):
         self.datasetsPath = Path(selectedDatasetPathStr).absolute()
         self.datasetPathList = self.getSubDirList(self.datasetsPath)
         self.projectsPath = (self.datasetsPath/'..'/f'projects').resolve().absolute()
@@ -154,3 +164,39 @@ class Commands:
         for dataset in tqdm(self.datasets):
             dataset.drawAndExport(args['lineStyle'], args['cornerStyle'])
         return self
+        
+    def job_assign(self, job_id:int, assignee_id:int):
+        self.job.patch_id(job_id, assignee_id=assignee_id)
+
+    @staticmethod
+    def export_report(project_id):
+        prjanaly = ProjectAnaly(project_id)
+        assignee_table, label_table = prjanaly()
+        makeReport(dataFrame1 = assignee_table, dataFrame2 = label_table, saveExcelName = 'Report')
+
+    def download_labeled_image(self, task_id:int, frame_id:int, outdir:str):
+        filename, img = self.task.download_frame(task_id, frame_id, outdir, save=False)
+        labels = dict([(label.id, label) for label in self.task.get_id(task_id).labels])
+        jobs = self.task.get_jobs(task_id)
+        job_id_with_frame = [job.id for job in jobs if (int(job.start_frame) <= frame_id) & (frame_id <= int(job.stop_frame))]
+        job_annos_list = [self.job.get_annotations(job_id) for job_id in job_id_with_frame]
+        annos = [[anno for anno in job_annos.shapes if anno.frame==frame_id][0] for job_annos in job_annos_list]
+        categories=[label.name for label in labels.values()]
+        items = []
+        for anno in annos:
+            attriname = dict([ (attr.id, attr.name) for attr in labels[anno.label_id].attributes ])
+            attris = dict([ (attriname[attr.spec_id], attr.value) for attr in anno.attributes ])
+            if anno.type=='rectangle':
+                x,y,x2,y2 = anno.points
+                items.append(Bbox(x,y,x2-x, y2-y,attributes=attris, label=categories.index(labels[anno.label_id].name)))
+            elif anno.type=='polygon':
+                items.append(Polygon(anno.points,attributes=attris, label=categories.index(labels[anno.label_id].name)))
+
+        # image = {'data': np.asarray(img),
+        #          'path': str(Path(outdir)/filename)}
+        dataset = Dataset.from_iterable([
+                        DatasetItem(id=filename, annotations=items, image=np.array(img))],
+                        categories=categories)
+        customset = customDataset(dataset)
+        for image_data in customset._imageDatas:
+            image_data.drawItem('s','s').saveImg(Path(outdir)/filename)

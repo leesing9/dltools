@@ -1,14 +1,5 @@
 {
-    "projectId": 1,
-    "base_url": "http://tmecnc62.iptime.org:12380",
-    "token": "80a6b6fd3846fed4dabe82273a3c10a35a81fb06",
-    "username": "serveradmin",
-    "password": "gAAAAABgNMgPlFJEiFPziAuH8DM3f8avOqpLjQGWlv6i_EOaHeQCFj3fmzSb_Ay2WgVnwYtX8EEC_uY-UeuSkWAZDYzbDvV5Rg==",
-    "hourlyBboxWorkingCount": 100,
-    "hourlySegWorkingCount": 25,
-    "dailyWorkingHour": 1000,
-    "onceAssignWorkingHour": 3,
-    "assignInterval": 1,
-    "exportFormat": "gspread",
-    "projectFile": "project.csv"
+    "base_url": "http://tmecnc62.iptime.org:11180",
+    "username": "tm",
+    "password": "gAAAAABgNfZz7AuApW7wq57uACiubJK98-zHVH3H7xdCOtu6hjBskaB29w2m7JPG2o9c-0WGMuBrAjcGCLUlxISOS7ggN2dyMg=="
 }

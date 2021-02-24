@@ -8,7 +8,7 @@ from openpyxl.worksheet.dimensions import ColumnDimension, DimensionHolder
 import os
 import pandas
 import seaborn
-import warnings
+from pathlib import Path
 
 header_worker = '작업자'
 header_annotation = '미작업'
@@ -46,13 +46,14 @@ def makePlot(dataFrame, figureSize, fontSize, saveFileName, x, y, hue = None):
 
     return
 
-def makeReport(dataFrame1, dataFrame2, saveExcelName):
+def makeReport(dataFrame1, dataFrame2, saveExcelName, outdir):
 
+    outdir = Path(outdir)
     modifiedDataFrame1 = pandas.melt(dataFrame1, id_vars=[header_worker], var_name='작업상태', value_name='개수')
-    makePlot(dataFrame = modifiedDataFrame1, figureSize = (5, int(modifiedDataFrame1.shape[0] * 0.2)), fontSize = 10, saveFileName = 'graph_dataFrame1.png', x = '개수', y = header_worker, hue = '작업상태')
+    makePlot(dataFrame = modifiedDataFrame1, figureSize = (5, max([int(modifiedDataFrame1.shape[0] * 0.2),2])), fontSize = 10, saveFileName = str(outdir/'graph_dataFrame1.png'), x = '개수', y = header_worker, hue = '작업상태')
 
     modifiedDataFrame2 = pandas.melt(dataFrame2, id_vars = ['label'], var_name = '작업상태', value_name = '개수')
-    makePlot(dataFrame = modifiedDataFrame2, figureSize = (5, int(modifiedDataFrame2.shape[0] * 0.2)), fontSize = 10, saveFileName = 'graph_dataFrame2.png', x = '개수', y = 'label', hue='작업상태')
+    makePlot(dataFrame = modifiedDataFrame2, figureSize = (5, max([int(modifiedDataFrame1.shape[0] * 0.2),2])), fontSize = 10, saveFileName = str(outdir/'graph_dataFrame2.png'), x = '개수', y = 'label', hue='작업상태')
 
     workBook = openpyxl.Workbook()
 
@@ -85,25 +86,25 @@ def makeReport(dataFrame1, dataFrame2, saveExcelName):
     workSheet['G1'] = 'Amount of work per worker'
     workSheet.merge_cells('G1:M1')
     setBorder(workSheet, 'G1:M1')
-    graph_sumPerTypeAndWorker = openpyxl.drawing.image.Image('graph_dataFrame1.png')
+    graph_sumPerTypeAndWorker = openpyxl.drawing.image.Image(str(outdir/'graph_dataFrame1.png'))
     workSheet.add_image(graph_sumPerTypeAndWorker, 'G2')
 
     workSheet['O1'] = 'Amount of work per class'
     workSheet.merge_cells('O1:U1')
     setBorder(workSheet, 'O1:U1')
-    graph_sumPerType = openpyxl.drawing.image.Image('graph_dataFrame2.png')
+    graph_sumPerType = openpyxl.drawing.image.Image(str(outdir/'graph_dataFrame2.png'))
     workSheet.add_image(graph_sumPerType, 'O2')
 
-    workBook.save(f'{saveExcelName}.xlsx')
+    workBook.save(str(outdir/f'{saveExcelName}.xlsx'))
 
-    removeTemporaryFile()
+    removeTemporaryFile(outdir)
 
     return
 
-def removeTemporaryFile():
+def removeTemporaryFile(outdir):
 
-    os.remove('graph_dataFrame1.png')
-    os.remove('graph_dataFrame2.png')
+    os.remove(str(outdir/'graph_dataFrame1.png'))
+    os.remove(str(outdir/'graph_dataFrame2.png'))
 
     return
 

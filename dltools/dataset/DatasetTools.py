@@ -1,7 +1,20 @@
 from dltools.dataset.menu import Menu
 from dltools.dataset.commands import Commands
 from dltools.rq_test import download_labeled_image, export_report
+from dltools.api import AuthAPI
+from dltools.dataset.utils import readJson
 
+from pathlib import Path
+
+cfg_path = Path(__file__).parent/'../config.json'
+cfg = readJson(cfg_path)
+
+base_url = cfg
+auth = AuthAPI(base_url)
+
+
+#login
+# auth.login(username=username, password=password)
 
 def main():
     command = Commands()

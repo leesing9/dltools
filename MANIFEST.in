@@ -1,2 +1,3 @@
 include dltools/dataset/NanumGothicBold.ttf
 include dltools/config.json
+include dltools/ui/ui2.ui

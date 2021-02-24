@@ -10,7 +10,7 @@ install_requires = [
         'tensorflow',
         'requests',
         'pyqt5',
-        'openpyxl'
+        'openpyxl',
         'seaborn',
         'matplotlib',
         'cryptography',

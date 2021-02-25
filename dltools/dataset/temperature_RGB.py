@@ -1,5 +1,5 @@
-import numpy
-import pandas
+import numpy as np
+import pandas as pd
 from pathlib import Path
 
 dictionary = {0 : [0, 0, 0],
@@ -31,7 +31,7 @@ dictionary = {0 : [0, 0, 0],
               26 : [26, 26, 26],
               27 : [27, 27, 27],
 }
-image = numpy.ones(shape = (28, 28, 3))
+image = np.ones(shape = (28, 28, 3))
 
 def thermal_matching(image, dictionary, outidr, filename):
     for rowIndex in range(image.shape[0]):
@@ -43,7 +43,7 @@ def thermal_matching(image, dictionary, outidr, filename):
     image = image.astype('uint32')
 
     # 온도 - RGB dictionary 찾고 .csv 저장
-    temperature = numpy.empty(shape = (image.shape[0], image.shape[1]))
+    temperature = np.empty(shape = (image.shape[0], image.shape[1]))
 
     for rowIndex in range(image.shape[0]):
 
@@ -51,9 +51,22 @@ def thermal_matching(image, dictionary, outidr, filename):
 
             # rgb = image[rowIndex, columnIndex, : ]
 
-            key = [key for key, value in dictionary.items() if value == image[rowIndex, columnIndex, : ].tolist()]
+            key = [float(key) for key, value in dictionary.items() if value == image[rowIndex, columnIndex, : ].tolist()]
             temperature[rowIndex, columnIndex] = key[0]
 
-    dataFrame = pandas.DataFrame(temperature)
+    dataFrame = pd.DataFrame(temperature)
 
     dataFrame.to_csv(str(Path(outidr)/f'{filename}.csv'), header = False, index = False)
+
+def thermal_matching_v2(image, thermal_dic, outidr, filename):
+    mask = np.zeros((*image.shape[:2],1))
+    uniq = np.unique(image.reshape((-1,3)), axis=0)
+    for rgb in uniq:
+        dic_key = '{},{},{}'.format(*list(rgb))
+        position = (image==rgb) & (mask==0)
+        image = np.where(position, thermal_dic[dic_key],  image)
+        mask = np.where(position, 1, mask)
+
+    image = image[:,:,0].squeeze()
+    pd.DataFrame(image).to_csv(str(Path(outidr)/f'{filename}.csv'), header = False, index = False)
+

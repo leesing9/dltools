@@ -10,7 +10,7 @@ from PIL import Image
 from dltools.dataset.utils import readJson
 from dltools.api import AuthAPI, UserAPI, JobAPI
 from dltools.dataset.crypto import Crypt
-from dltools.dataset.temperature_RGB import thermal_matching, dictionary
+from dltools.dataset.temperature_RGB import thermal_matching, thermal_matching_v2
 from dltools.analytics.project import ProjectAnaly
 
 
@@ -90,23 +90,23 @@ class WindowClass(QMainWindow, form_class) :
         outdir = self.lineEdit_3.text()
         self.cmd.download_labeled_image(task_id, frame_id, outdir)
 
-    def single_file_select(self, lineEdit):
-        filename = QFileDialog.getOpenFileName(self)
-        lineEdit.setText(filename)
+    def single_file_select(self, lineEdit, *a):
+        filename = QFileDialog.getOpenFileName(self, 'Open File', '')
+        lineEdit.setText(filename[0])
         
-    def single_dir_select(self, lineEdit):
+    def single_dir_select(self, lineEdit, *a):
         filename = QFileDialog.getExistingDirectory(self)
         lineEdit.setText(filename)
 
-    def multi_file_select(self, listview):
+    def multi_file_select(self, listview, *a):
         filenames = QFileDialog.getOpenFileNames(self, 'Open Files', '', "All Files(*);; Images (*.png *.xpm *.jpg *.jpeg);; json (*.json)")
         self.thermal_images = filenames[0]
         for file in filenames[0]:
             listview.addItem(file)
 
-    def file_list_clear(self, listview, file_list:list):
+    def file_list_clear(self, listview, *a):
         listview.clear()
-        file_list.clear()
+        self.thermal_images.clear()
 
     @error_massage
     def merge(self, *a):
@@ -146,11 +146,11 @@ class WindowClass(QMainWindow, form_class) :
 
     @error_massage
     def run_thermal_matching(self, *a):
-        # thermal_dic = readJson(self.lineEdit_4.text())
+        thermal_dic = readJson(self.lineEdit_4.text())
         for path in self.thermal_images:
             image = np.array(Image.open(path))
             filename = Path(path).stem
-            thermal_matching(image, dictionary, self.lineEdit_7.text(), filename)
+            thermal_matching_v2(image, thermal_dic, self.lineEdit_7.text(), filename)
 
     @error_massage
     def job_assign(self, *a):

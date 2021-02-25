@@ -24,6 +24,11 @@ class ProjectAnaly:
         self.annos = [self._process_anno(self.task_api.get_annotations(task.id)) for task in self.tasks]
         self.annos =reduce(lambda x, y: x+y, self.annos) 
 
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        return self.assignee_table, self.label_table
+
+    def mk_table(self):
         self.job_df = pd.DataFrame(self.jobs)
         self.job_df[['assignee', 'reviewer']] = self.job_df[['assignee', 'reviewer']].fillna('@Unallocated')
 
@@ -33,12 +38,10 @@ class ProjectAnaly:
         self.assignee_table = pd.DataFrame(assignee_table, columns=['annotation','validation','modification','complete']).fillna(0).reset_index()
         self.assignee_table = self.assignee_table.rename(columns={'assignee':'작업자','annotation':'미작업','validation':'검수대기','modification':'수정대기','complete':'완료'})
 
-        label_table = pd.pivot_table(self.anno_df, 'frame', 'label', 'type', aggfunc='count', fill_value=0)
-        self.label_table = pd.DataFrame(label_table, columns=['rectangle', 'polygon', 'polyline', 'points', 'cuboid']).fillna(0).reset_index()
+        if self.anno_df.empty:
+            label_table = pd.pivot_table(self.anno_df, 'frame', 'label', 'type', aggfunc='count', fill_value=0)
+        self.label_table = pd.DataFrame(label_table, columns=['rectangle', 'polygon', 'polyline', 'points', 'cuboid'], index='label').fillna(0).reset_index()
         self.label_table = self.label_table.rename(columns={'rectangle':'bounding box'})
-
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-        return self.assignee_table, self.label_table
 
     @staticmethod
     def _process_job(job:SimpleJobInfo, task_id:int):
@@ -97,5 +100,6 @@ class ProjectAnaly:
         return anno_list
 
     def export_report(self, outdir):
+        self.mk_table()
         makeReport(dataFrame1 = self.assignee_table, dataFrame2 = self.label_table, saveExcelName = 'Report', outdir=outdir)
         

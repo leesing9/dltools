@@ -1,4 +1,4 @@
-from cryptography.fernet import Fernet # symmetric encryption
+from cryptography.fernet import Fernet, InvalidToken # symmetric encryption
 
 class Crypt:
     def __init__(self):
@@ -19,7 +19,10 @@ class Crypt:
         if isinstance(data, bytes):
             ou = self.f.decrypt(data) # 바이트형태이면 바로 복호화
         else:
-            ou = self.f.decrypt(data.encode('utf-8')) # 인코딩 후 복호화
+            try:
+                ou = self.f.decrypt(data.encode('utf-8')) # 인코딩 후 복호화
+            except InvalidToken:
+                return ''
         if is_out_string is True:
             return ou.decode('utf-8') # 출력이 문자열이면 디코딩 후 반환
         else:

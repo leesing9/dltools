@@ -3,3 +3,4 @@ __pycache__
 .coverage
 
 rq_test.py
+dltools/config.json

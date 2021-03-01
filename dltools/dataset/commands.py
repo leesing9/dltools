@@ -25,8 +25,8 @@ from dltools.analytics import ProjectAnaly, makeReport
 class Commands:
     def __init__(self) -> None:
         # self.selWorkDir()
-        self.task = TaskAPI()
-        self.job = JobAPI()
+        self.task_api = TaskAPI()
+        self.job_api = JobAPI()
 
     def selWorkDir(self):
         root = Tk()
@@ -180,7 +180,7 @@ class Commands:
         return self
         
     def job_assign(self, job_id:int, assignee_id:int):
-        self.job.patch_id(job_id, assignee_id=assignee_id)
+        self.job_api.patch_id(job_id, assignee_id=assignee_id)
 
     @staticmethod
     def export_report(project_id):
@@ -189,11 +189,11 @@ class Commands:
         makeReport(dataFrame1 = assignee_table, dataFrame2 = label_table, saveExcelName = 'Report')
 
     def download_labeled_image(self, task_id:int, frame_id:int, outdir:str):
-        filename, img = self.task.download_frame(task_id, frame_id, outdir, save=False)
-        labels = dict([(label.id, label) for label in self.task.get_id(task_id).labels])
-        jobs = self.task.get_jobs(task_id)
+        filename, img = self.task_api.download_frame(task_id, frame_id, outdir, save=False)
+        labels = dict([(label.id, label) for label in self.task_api.get_id(task_id).labels])
+        jobs = self.task_api.get_jobs(task_id)
         job_id_with_frame = [job.id for job in jobs if (int(job.start_frame) <= frame_id) & (frame_id <= int(job.stop_frame))]
-        job_annos_list = [self.job.get_annotations(job_id) for job_id in job_id_with_frame]
+        job_annos_list = [self.job_api.get_annotations(job_id) for job_id in job_id_with_frame]
         annos = [[anno for anno in job_annos.shapes if anno.frame==frame_id][0] for job_annos in job_annos_list]
         categories=[label.name for label in labels.values()]
         items = []

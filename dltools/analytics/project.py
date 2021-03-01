@@ -6,15 +6,19 @@ from functools import reduce
 from typing import Any
 
 from dltools.api.info import LabeledDataInfo, SimpleJobInfo
-from dltools.api import JobAPI, TaskAPI, ProjectAPI, AuthAPI
+from dltools.api import JobAPI, TaskAPI, ProjectAPI, AuthAPI, user
 from dltools.analytics.Test_WriteReport4 import makeReport
 
 
 class ProjectAnaly:
     def __init__(self, project_id) -> None:
+        self.project_id = project_id
         self.project_api = ProjectAPI()
         self.task_api = TaskAPI()
-        self.raw_task_info = {}
+        self.job_api = JobAPI()
+        self.get_project_info(project_id)
+    
+    def get_project_info(self, project_id):
         self.project_info = self.project_api.get_id(project_id)
         self.labels = dict([(label.id, label.name) for label in self.project_info.labels])
         self.attribute_names = dict([(attr['id'], attr['name']) for label in self.project_info.labels for attr in label['attributes']])
@@ -24,9 +28,6 @@ class ProjectAnaly:
         self.annos = [self._process_anno(self.task_api.get_annotations(task.id)) for task in self.tasks]
         self.annos =reduce(lambda x, y: x+y, self.annos) 
 
-
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-        return self.assignee_table, self.label_table
 
     def mk_table(self):
         self.job_df = pd.DataFrame(self.jobs)
@@ -102,4 +103,26 @@ class ProjectAnaly:
     def export_report(self, outdir):
         self.mk_table()
         makeReport(dataFrame1 = self.assignee_table, dataFrame2 = self.label_table, saveExcelName = 'Report', outdir=outdir)
+
+    def get_task_elem_list(self, elem):
+        return [task[elem] for task in self.tasks]
+
+    def filter_task(self, elem, value):
+        return dict([(value, task) for task in self.tasks if task[elem]==value])
+
         
+
+
+if __name__=='__main__':
+    base_url = 'http://tmecnc62.iptime.org:11180'
+    username = 'serveradmin'
+    password = 'wnrWkd131@Cv'
+    auth = AuthAPI(base_url)
+    auth.login(username, password)
+
+    a = ProjectAnaly(6)
+    a.tasks
+    a.jobs
+    a.annos
+    a.labels
+    print()

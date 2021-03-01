@@ -47,6 +47,7 @@ class WindowClass(QMainWindow, form_class) :
         # download frame image
         self.pushButton_3.clicked.connect(lambda :self.single_dir_select(self.lineEdit_3))
         self.pushButton_2.clicked.connect(self.download_frame_image)
+        self.download_frame_image_task_id.currentIndexChanged.connet(self.set_frame_id)
 
         #merge
         self.pushButton_4.clicked.connect(self.merge)
@@ -71,17 +72,29 @@ class WindowClass(QMainWindow, form_class) :
     @error_massage
     def report(self, *a): return ProjectAnaly(int(self.lineEdit_5.text())).export_report(self.lineEdit_8.text())
 
+    def set_frame_id(self,taks_id):
+        task = self.info.filter_task('id', taks_id)[0]
+        frame_size = task.size
+        self.set_combobox(self.download_frame_image_frame_id, range(frame_size))
+
     def signin(self, *a):
         base_url = self.url.text()
         username = self.id.text()
         password = self.password.text()
         auth = AuthAPI(base_url)
-        auth.login(username, password)
+        r = auth.login(username, password)
         self.userinfo = UserAPI().get_id('self')
+        if r:
+            self.pushButton.setText('성공')
+            self.cmd = Commands()
+            self.info = ProjectAnaly()
+            self.gridTabWidget.setEnabled(True)
 
-        self.pushButton.setText('성공')
-        self.cmd = Commands()
-        self.gridGroupBox.setEnabled(True)
+            #
+            task_ids = self.info.get_task_elem_list('id')
+            task_names = self.info.get_task_elem_list('name')
+            task_combo_list = [IdName(id, name)() for id in task_ids for name in task_names]
+            self.set_combobox(self.download_frame_image_task_id, task_combo_list)
 
     @error_massage
     def download_frame_image(self, *a):
@@ -89,6 +102,11 @@ class WindowClass(QMainWindow, form_class) :
         frame_id = int(self.lineEdit_2.text())
         outdir = self.lineEdit_3.text()
         self.cmd.download_labeled_image(task_id, frame_id, outdir)
+
+    @staticmethod
+    def set_combobox(combobox, list):
+        for line in list:
+            combobox.addItem(line)
 
     def single_file_select(self, lineEdit, *a):
         filename = QFileDialog.getOpenFileName(self, 'Open File', '')
@@ -170,7 +188,17 @@ class WindowClass(QMainWindow, form_class) :
         anno_status_jobs = [job.id for job in ProjectAnaly(project_id).jobs if (job.status=='annotation') and (job.assignee is not None)]
         for job_id in anno_status_jobs:
             job_api.patch_id(job_id, assignee_id=None)
+
+    def _get_task_list(self):
+        self.
         
+class IdName:
+    def __init__(self, id, name) -> None:
+        self.id = id
+        self.name = name
+
+    def __call__(self, *args, **kwds) -> str:
+        return f'{self.id}: {self.name}'
 
 if __name__ == "__main__" :
     #QApplication : 프로그램을 실행시켜주는 클래스
